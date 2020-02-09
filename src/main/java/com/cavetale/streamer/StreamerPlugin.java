@@ -33,12 +33,10 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
     Player streamer;
     Player target;
     int targetTime = 0;
-    boolean freeCam = false;
 
     @Override
     public void onEnable() {
         getServer().getScheduler().runTaskTimer(this, this::timer, 0L, 20);
-        getServer().getScheduler().runTaskTimer(this, this::onTick, 1L, 1L);
         getServer().getPluginManager().registerEvents(this, this);
     }
 
@@ -77,7 +75,6 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
                                + (target != null
                                   ? target.getName()
                                   : "N/A"));
-            sender.sendMessage("FreeCam: " + freeCam);
             sender.sendMessage("TargetTime: " + targetTime);
             return true;
         case "rank": {
@@ -198,15 +195,9 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
         }
         if (tooFar(streamer.getLocation(), target.getLocation(), 32.0)) {
             streamer.setSpectatorTarget(null);
-            if (target.getLocation().getBlock().getLightFromSky() >= 15) {
-                freeCam = true;
-                streamer.teleport(target.getLocation().add(0, 2.0, 0));
-            } else {
-                freeCam = false;
-                streamer.teleport(target);
-            }
+            streamer.teleport(target);
         } else {
-            if (!freeCam && streamer.getSpectatorTarget() == null) {
+            if (streamer.getSpectatorTarget() == null) {
                 streamer.setSpectatorTarget(target);
             }
             Block block = streamer.getEyeLocation().getBlock();
@@ -221,24 +212,6 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
             }
         }
         streamer.sendActionBar(ChatColor.GRAY + "Spectating " + target.getDisplayName());
-    }
-
-    void onTick() {
-        if (!freeCam) return;
-        if (!checkValidity()) return;
-        Location a = streamer.getLocation();
-        Location b = target.getLocation();
-        if (tooFar(a, b, 48.0)) return;
-        if (!streamer.hasLineOfSight(target)) {
-            if (target.getLocation().getBlock().getLightFromSky() >= 15) {
-                streamer.teleport(target.getLocation().add(0, 2.0, 0));
-            } else {
-                freeCam = false;
-            }
-            return;
-        }
-        a.setDirection(b.toVector().subtract(a.toVector()).normalize());
-        streamer.teleport(a);
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
