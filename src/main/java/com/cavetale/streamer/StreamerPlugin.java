@@ -144,7 +144,9 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
                                  + "Now spectating " + target.getName() + ".");
             target.sendMessage(ChatColor.BLUE + "[Streamer] "
                                + ChatColor.WHITE
-                               + streamer.getName() + " is spectating you.");
+                               + streamer.getName() + " is spectating you on "
+                               + ChatColor.BLUE + "https://twitch.tv/StarTux"
+                               + ChatColor.WHITE + ".");
         }
     }
 
