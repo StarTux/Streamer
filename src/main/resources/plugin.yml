@@ -1,0 +1,21 @@
+main: com.cavetale.streamer.StreamerPlugin
+name: Streamer
+version: 0.1
+api-version: 1.13
+description: Move the stream bot around
+author: StarTux
+website: https://cavetale.com
+depend: []
+softdepend: []
+commands:
+  streamer:
+    description: Admin commands
+    permission: streamer.streamer
+    usage: |-
+      /streamer info - Print some info
+      /streamer target - Pick new target
+      /streamer target <name> Pick specific target
+permissions:
+  streamer.streamer:
+    description: 'N/A'
+    default: op
