@@ -11,10 +11,8 @@ final class Session {
     int ly;
     int lz;
     int noMove = 0;
-    int score = 0;
 
     void timer() {
-        if (score > 0) score = (score * 99) / 100;
         Location eye = player.getEyeLocation();
         final int x = eye.getBlockX();
         final int y = eye.getBlockY();

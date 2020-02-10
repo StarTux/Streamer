@@ -16,9 +16,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
@@ -79,13 +76,11 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
             return true;
         case "rank": {
             List<Session> rows = sessions.values().stream()
-                .sorted((a, b) -> Integer.compare(b.score, a.score))
                 .collect(Collectors.toList());
             sender.sendMessage("" + rows.size() + " Ranks:");
             int i = 1;
             for (Session row : rows) {
                 sender.sendMessage(i++ + ") "
-                                   + row.score
                                    + " " + row.player.getName()
                                    + " noMove=" + row.noMove);
             }
@@ -113,16 +108,12 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
             .filter(p -> p.getGameMode() != GameMode.SPECTATOR)
             .map(this::sessionOf)
             .filter(s -> s.noMove < 10)
-            .sorted((a, b) -> Integer.compare(b.score, a.score))
             .collect(Collectors.toList());
-        int avg = 0;
-        for (Session row : targets) {
-            avg += row.score;
+        if (targets.isEmpty()) {
+            pickTarget(null);
+            detachStreamer();
+            return;
         }
-        avg /= targets.size();
-        final int avg2 = avg;
-        targets.removeIf(t -> t.score < avg2);
-        if (targets.isEmpty()) return;
         pickTarget(targets.get(random.nextInt(targets.size())).player);
     }
 
@@ -248,29 +239,5 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
         if (player.equals(target)) {
             streamer.setSpectatorTarget(null);
         }
-    }
-
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-    public void onBlockBreak(BlockBreakEvent event) {
-        sessionOf(event.getPlayer()).score += 3;
-    }
-
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-    public void onBlockPlace(BlockPlaceEvent event) {
-        sessionOf(event.getPlayer()).score += 10;
-    }
-
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-    public void onEntityDamage(EntityDamageEvent event) {
-        if (!(event.getEntity() instanceof Player)) return;
-        switch (event.getCause()) {
-        case ENTITY_ATTACK:
-        case ENTITY_EXPLOSION:
-        case ENTITY_SWEEP_ATTACK:
-            break;
-        default:
-            return;
-        }
-        sessionOf((Player) event.getEntity()).score += 4 * (int) event.getDamage();
     }
 }
