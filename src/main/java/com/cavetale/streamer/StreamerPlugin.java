@@ -154,6 +154,10 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
             getLogger().info("checkValidity: Target disappeared: " + target.getName());
             pickTarget(null);
         }
+        if (target != null && !target.hasPermission("streamer.target")) {
+            getLogger().info("checkValidity: Target lost permission: " + target.getName());
+            pickTarget(null);
+        }
         if (streamer != null && target == null && streamer.getSpectatorTarget() != null) {
             detachStreamer();
         }
