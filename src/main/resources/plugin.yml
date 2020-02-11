@@ -19,3 +19,6 @@ permissions:
   streamer.streamer:
     description: 'N/A'
     default: op
+  streamer.target:
+    description: Be targeted by the streamer
+    default: false

@@ -106,6 +106,7 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
             .filter(p -> !p.equals(streamer))
             .filter(Player::isValid)
             .filter(p -> p.getGameMode() != GameMode.SPECTATOR)
+            .filter(p -> p.hasPermission("streamer.target"))
             .map(this::sessionOf)
             .filter(s -> s.noMove < 10)
             .collect(Collectors.toList());
