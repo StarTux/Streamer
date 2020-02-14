@@ -188,6 +188,13 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
             pickTarget();
         }
         if (target == null) return;
+        PotionEffect pot = target.getPotionEffect(PotionEffectType.LUCK);
+        final int dur = 219;
+        if (pot == null || pot.getAmplifier() == 0 || pot.getDuration() < dur) {
+            pot = new PotionEffect(PotionEffectType.LUCK, dur, 0,
+                                   true, true, true);
+            target.addPotionEffect(pot, true);
+        }
         Session session = sessionOf(target);
         targetTime += 1;
         if (streamer.getGameMode() != GameMode.SPECTATOR) {
@@ -201,14 +208,12 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
                 streamer.setSpectatorTarget(target);
             }
             Block block = streamer.getEyeLocation().getBlock();
-            if (block.isEmpty()) {
-                if (block.getLightLevel() < 7) {
-                    PotionEffect pot = new PotionEffect(PotionEffectType.NIGHT_VISION,
-                                                        600, 0, true, false, false);
-                    streamer.addPotionEffect(pot, true);
-                } else if (block.getLightLevel() > 9) {
-                    streamer.removePotionEffect(PotionEffectType.NIGHT_VISION);
-                }
+            if (block.getLightLevel() < 8) {
+                pot = new PotionEffect(PotionEffectType.NIGHT_VISION,
+                                       600, 0, true, false, false);
+                streamer.addPotionEffect(pot, true);
+            } else if (block.getLightLevel() > 10) {
+                streamer.removePotionEffect(PotionEffectType.NIGHT_VISION);
             }
         }
         streamer.sendActionBar(ChatColor.GRAY + "Spectating " + target.getDisplayName());
