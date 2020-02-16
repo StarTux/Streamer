@@ -192,7 +192,7 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
         }
         if (target == null) {
             idleTime += 1;
-            if (idleTime % 600 == 0) {
+            if (idleTime % 30 == 0) {
                 HomePlugin homePlugin = (HomePlugin) getServer()
                     .getPluginManager().getPlugin("Home");
                 if (homePlugin == null) return;
