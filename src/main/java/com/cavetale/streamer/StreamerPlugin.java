@@ -33,6 +33,7 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
     Player target;
     int targetTime = 0;
     int idleTime = 0;
+    Location spectateLocation;
 
     @Override
     public void onEnable() {
@@ -225,6 +226,10 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
         } else {
             if (streamer.getSpectatorTarget() == null) {
                 streamer.setSpectatorTarget(target);
+                spectateLocation = target.getLocation();
+            } else if (spectateLocation != null
+                       && tooFar(spectateLocation, streamer.getLocation(), 64.0)) {
+                streamer.setSpectatorTarget(null);
             }
             Block block = streamer.getEyeLocation().getBlock();
             if (block.getLightLevel() < 8) {
