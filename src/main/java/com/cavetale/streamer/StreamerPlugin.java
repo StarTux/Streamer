@@ -172,7 +172,6 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
     void detachStreamer() {
         if (streamer == null) return;
         streamer.setSpectatorTarget(null);
-        streamer.teleport(getServer().getWorld("spawn").getSpawnLocation());
     }
 
     boolean tooFar(Location a, Location b, double max) {
