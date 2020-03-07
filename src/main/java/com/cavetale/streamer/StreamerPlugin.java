@@ -263,6 +263,7 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onPlayerTeleport(PlayerTeleportEvent event) {
+        if (!checkValidity()) return;
         Player player = event.getPlayer();
         if (player.equals(target)) {
             streamer.setSpectatorTarget(null);
