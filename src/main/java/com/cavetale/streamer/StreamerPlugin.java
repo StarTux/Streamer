@@ -1,7 +1,5 @@
 package com.cavetale.streamer;
 
-import com.cavetale.home.Home;
-import com.cavetale.home.HomePlugin;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +30,6 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
     Player streamer;
     Player target;
     int targetTime = 0;
-    int idleTime = 0;
     Location spectateLocation;
 
     @Override
@@ -191,23 +188,8 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
             pickTarget();
         }
         if (target == null) {
-            idleTime += 1;
-            if (idleTime % 30 == 0) {
-                HomePlugin homePlugin = (HomePlugin) getServer()
-                    .getPluginManager().getPlugin("Home");
-                if (homePlugin == null) return;
-                List<Home> homes = homePlugin.getHomes();
-                if (homes.isEmpty()) return;
-                Home home = homes.get(random.nextInt(homes.size()));
-                Location loc = home.createLocation();
-                if (loc == null) return;
-                streamer.teleport(loc);
-                streamer.sendActionBar(ChatColor.GRAY + "Home of "
-                                       + home.getOwnerName());
-            }
             return;
         }
-        idleTime = 0;
         PotionEffect pot = target.getPotionEffect(PotionEffectType.LUCK);
         final int dur = 219;
         if (pot == null || pot.getAmplifier() == 0 || pot.getDuration() < dur) {

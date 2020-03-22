@@ -5,7 +5,7 @@ api-version: 1.13
 description: Move the stream bot around
 author: StarTux
 website: https://cavetale.com
-depend: [Home]
+depend: []
 softdepend: []
 commands:
   streamer:
