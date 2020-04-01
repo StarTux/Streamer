@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -16,6 +17,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
@@ -177,31 +179,53 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
         return a.distanceSquared(b) > max * max;
     }
 
-    void timer() {
-        for (Player player : getServer().getOnlinePlayers()) {
-            if (player.equals(streamer)) continue;
-            sessionOf(player).timer();
-        }
-        checkValidity();
-        if (streamer == null) return;
-        if (target == null || targetTime > 7 * 60 || sessionOf(target).noMove > 40) {
-            pickTarget();
-        }
-        if (target == null) {
-            return;
-        }
-        PotionEffect pot = target.getPotionEffect(PotionEffectType.LUCK);
+    void giveLuck(Player player) {
+        PotionEffect pot = player.getPotionEffect(PotionEffectType.LUCK);
         final int dur = 219;
         if (pot == null || pot.getAmplifier() == 0 || pot.getDuration() < dur) {
             pot = new PotionEffect(PotionEffectType.LUCK, dur, 0,
                                    true, true, true);
-            target.addPotionEffect(pot, true);
+            player.addPotionEffect(pot, true);
         }
-        Session session = sessionOf(target);
-        targetTime += 1;
+    }
+
+    void prepStreamer() {
+        // Set gamemode
         if (streamer.getGameMode() != GameMode.SPECTATOR) {
             streamer.setGameMode(GameMode.SPECTATOR);
         }
+        // Restore health
+        double max = streamer.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+        if (streamer.getHealth() < max) {
+            streamer.setHealth(max);
+        }
+        // Remove potion effects
+        for (PotionEffectType type : PotionEffectType.values()) {
+            if (type == PotionEffectType.NIGHT_VISION) continue;
+            if (streamer.hasPotionEffect(type)) {
+                streamer.removePotionEffect(type);
+            }
+        }
+    }
+
+    void applyNightVision() {
+        Block block = streamer.getEyeLocation().getBlock();
+        if (block.getLightLevel() < 8) {
+            PotionEffect pot = new PotionEffect(PotionEffectType.NIGHT_VISION,
+                                                600, 0, true, false, false);
+            streamer.addPotionEffect(pot, true);
+        } else if (block.getLightLevel() > 10) {
+            streamer.removePotionEffect(PotionEffectType.NIGHT_VISION);
+        }
+    }
+
+    /**
+     * Target may not be null.
+     */
+    void spectateTarget() {
+        giveLuck(target);
+        Session session = sessionOf(target);
+        targetTime += 1;
         if (tooFar(streamer.getLocation(), target.getLocation(), 32.0)) {
             streamer.setSpectatorTarget(null);
             streamer.teleport(target);
@@ -213,16 +237,24 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
                        && tooFar(spectateLocation, streamer.getLocation(), 64.0)) {
                 streamer.setSpectatorTarget(null);
             }
-            Block block = streamer.getEyeLocation().getBlock();
-            if (block.getLightLevel() < 8) {
-                pot = new PotionEffect(PotionEffectType.NIGHT_VISION,
-                                       600, 0, true, false, false);
-                streamer.addPotionEffect(pot, true);
-            } else if (block.getLightLevel() > 10) {
-                streamer.removePotionEffect(PotionEffectType.NIGHT_VISION);
-            }
         }
         streamer.sendActionBar(ChatColor.GRAY + "Spectating " + target.getDisplayName());
+    }
+
+    void timer() {
+        for (Player player : getServer().getOnlinePlayers()) {
+            if (player.equals(streamer)) continue;
+            sessionOf(player).timer();
+        }
+        checkValidity();
+        if (streamer == null) return;
+        if (target == null || targetTime > 7 * 60 || sessionOf(target).noMove > 40) {
+            pickTarget();
+        }
+        if (target != null) {
+            spectateTarget();
+        }
+        applyNightVision();
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
@@ -257,6 +289,13 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
         Player player = event.getPlayer();
         if (player.equals(target)) {
             streamer.setSpectatorTarget(null);
+        }
+    }
+
+    @EventHandler
+    public void onEntityDamage(EntityDamageEvent event) {
+        if (event.getEntity().equals(streamer)) {
+            event.setCancelled(true);
         }
     }
 }
