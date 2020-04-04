@@ -226,6 +226,7 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
         giveLuck(target);
         Session session = sessionOf(target);
         targetTime += 1;
+        prepStreamer();
         if (tooFar(streamer.getLocation(), target.getLocation(), 32.0)) {
             streamer.setSpectatorTarget(null);
             streamer.teleport(target);
