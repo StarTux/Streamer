@@ -1,5 +1,8 @@
 package com.cavetale.streamer;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,11 +36,21 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
     Player target;
     int targetTime = 0;
     Location spectateLocation;
+    String targetServer;
+    int sendServerCooldown;
 
     @Override
     public void onEnable() {
+        saveDefaultConfig();
         getServer().getScheduler().runTaskTimer(this, this::timer, 0L, 20);
         getServer().getPluginManager().registerEvents(this, this);
+        loadConf();
+        getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
+    }
+
+    void loadConf() {
+        reloadConfig();
+        targetServer = getConfig().getString("TargetServer");
     }
 
     @Override
@@ -76,6 +89,7 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
                                   ? target.getName()
                                   : "N/A"));
             sender.sendMessage("TargetTime: " + targetTime);
+            sender.sendMessage("TargetServer: " + targetServer);
             return true;
         case "rank": {
             List<Session> rows = sessions.values().stream()
@@ -87,6 +101,11 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
                                    + " " + row.player.getName()
                                    + " noMove=" + row.noMove);
             }
+            return true;
+        }
+        case "reload": {
+            loadConf();
+            sender.sendMessage("Config reloaded.");
             return true;
         }
         default:
@@ -146,23 +165,22 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
     }
 
     boolean checkValidity() {
+        // Streamer
+        if (streamer != null && !streamer.isOnline()) {
+            streamer = null;
+        }
         if (streamer == null) {
             streamer = getServer().getPlayerExact("Cavetale");
         }
-        if (streamer != null && !streamer.isOnline()) {
-            getLogger().info("checkValidity: Streamer disappeared: " + streamer.getName());
-            streamer = null;
-        }
+        // Target
         if (target != null && !target.isOnline()) {
-            getLogger().info("checkValidity: Target disappeared: " + target.getName());
+            pickTarget(null);
+            detachStreamer();
+        } else if (target != null && !target.hasPermission("streamer.target")) {
             pickTarget(null);
             detachStreamer();
         }
-        if (target != null && !target.hasPermission("streamer.target")) {
-            getLogger().info("checkValidity: Target lost permission: " + target.getName());
-            pickTarget(null);
-            detachStreamer();
-        }
+        // Detach if necessary
         if (streamer != null && target == null && streamer.getSpectatorTarget() != null) {
             detachStreamer();
         }
@@ -249,6 +267,16 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
         }
         checkValidity();
         if (streamer == null) return;
+        if (targetServer != null && !targetServer.isEmpty()) {
+            if (sendServerCooldown > 0) {
+                sendServerCooldown -= 1;
+                return;
+            }
+            getLogger().info("Sending " + streamer.getName() + " to " + targetServer);
+            sendServer(streamer, targetServer);
+            sendServerCooldown = 200;
+            return;
+        }
         if (target == null || targetTime > 7 * 60 || sessionOf(target).noMove > 40) {
             pickTarget();
         }
@@ -256,6 +284,19 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
             spectateTarget();
         }
         applyNightVision();
+    }
+
+    void sendServer(Player player, String server) {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        DataOutputStream dos = new DataOutputStream(baos);
+        try {
+            dos.writeUTF("Connect");
+            dos.writeUTF(server);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            return;
+        }
+        player.sendPluginMessage(this, "BungeeCord", baos.toByteArray());
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
