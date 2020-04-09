@@ -38,6 +38,7 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
     Location spectateLocation;
     String targetServer;
     int sendServerCooldown;
+    String url;
 
     @Override
     public void onEnable() {
@@ -51,6 +52,7 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
     void loadConf() {
         reloadConfig();
         targetServer = getConfig().getString("TargetServer");
+        url = getConfig().getString("URL");
     }
 
     @Override
@@ -90,6 +92,7 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
                                   : "N/A"));
             sender.sendMessage("TargetTime: " + targetTime);
             sender.sendMessage("TargetServer: " + targetServer);
+            sender.sendMessage("URL: " + url);
             return true;
         case "rank": {
             List<Session> rows = sessions.values().stream()
@@ -159,7 +162,7 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
             target.sendMessage(ChatColor.BLUE + "[Streamer] "
                                + ChatColor.WHITE
                                + streamer.getName() + " is spectating you on "
-                               + ChatColor.BLUE + "https://twitch.tv/StarTux"
+                               + ChatColor.BLUE + url
                                + ChatColor.WHITE + ".");
         }
     }
