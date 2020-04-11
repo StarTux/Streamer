@@ -120,7 +120,7 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
             cb.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
                                     TextComponent.fromLegacyText(url)));
             cb.event(new ClickEvent(ClickEvent.Action.OPEN_URL, url));
-            cb.append(". ").color(ChatColor.WHITE);
+            cb.append(". ").reset();
             cb.append("[OptOut]").color(ChatColor.GREEN);
             String cmd = "/stream optout";
             cb.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
