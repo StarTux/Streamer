@@ -35,6 +35,7 @@ import org.bukkit.potion.PotionEffectType;
 
 public final class StreamerPlugin extends JavaPlugin implements Listener {
     final StreamerCommand streamerCommand = new StreamerCommand(this);
+    final StreamCommand streamCommand = new StreamCommand(this);
     final Random random = new Random();
     final Set<UUID> optouts = new HashSet<>();
     Map<UUID, Session> sessions = new HashMap<>();
@@ -54,6 +55,7 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
         loadConf();
         getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
         getCommand("streamer").setExecutor(streamerCommand);
+        getCommand("stream").setExecutor(streamCommand);
     }
 
     void loadConf() {
