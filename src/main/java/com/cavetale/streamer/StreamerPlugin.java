@@ -4,18 +4,22 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import org.bukkit.ChatColor;
+import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -30,7 +34,9 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 public final class StreamerPlugin extends JavaPlugin implements Listener {
-    Random random = new Random();
+    final StreamerCommand streamerCommand = new StreamerCommand(this);
+    final Random random = new Random();
+    final Set<UUID> optouts = new HashSet<>();
     Map<UUID, Session> sessions = new HashMap<>();
     Player streamer;
     Player target;
@@ -47,6 +53,7 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(this, this);
         loadConf();
         getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
+        getCommand("streamer").setExecutor(streamerCommand);
     }
 
     void loadConf() {
@@ -58,62 +65,6 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
     @Override
     public void onDisable() {
         pickTarget(null);
-    }
-
-    @Override
-    public boolean onCommand(CommandSender sender, Command command,
-                             String label, String[] args) {
-        if (args.length == 0) return false;
-        switch (args[0]) {
-        case "target":
-            if (args.length > 2) return false;
-            if (args.length == 1) {
-                sender.sendMessage("[Streamer] Picking new target");
-                pickTarget();
-                return true;
-            } else if (args.length == 2) {
-                Player p = getServer().getPlayerExact(args[1]);
-                if (p == null) {
-                    sender.sendMessage("Player not found: " + args[1]);
-                } else {
-                    sender.sendMessage("Selecting target: " + p.getName());
-                    pickTarget(p);
-                }
-                return true;
-            }
-        case "info":
-            sender.sendMessage("Streamer: "
-                               + (streamer != null
-                                  ? streamer.getName()
-                                  : "N/A"));
-            sender.sendMessage("Target: "
-                               + (target != null
-                                  ? target.getName()
-                                  : "N/A"));
-            sender.sendMessage("TargetTime: " + targetTime);
-            sender.sendMessage("TargetServer: " + targetServer);
-            sender.sendMessage("URL: " + url);
-            return true;
-        case "rank": {
-            List<Session> rows = sessions.values().stream()
-                .collect(Collectors.toList());
-            sender.sendMessage("" + rows.size() + " Ranks:");
-            int i = 1;
-            for (Session row : rows) {
-                sender.sendMessage(i++ + ") "
-                                   + " " + row.player.getName()
-                                   + " noMove=" + row.noMove);
-            }
-            return true;
-        }
-        case "reload": {
-            loadConf();
-            sender.sendMessage("Config reloaded.");
-            return true;
-        }
-        default:
-            return false;
-        }
     }
 
     Session sessionOf(Player player) {
@@ -132,6 +83,7 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
             .filter(Player::isValid)
             .filter(p -> p.getGameMode() != GameMode.SPECTATOR)
             .filter(p -> p.hasPermission("streamer.target"))
+            .filter(p -> !optouts.contains(p.getUniqueId()))
             .map(this::sessionOf)
             .filter(s -> s.noMove < 10)
             .collect(Collectors.toList());
@@ -159,11 +111,20 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
             streamer.sendMessage(ChatColor.BLUE + "[Streamer] "
                                  + ChatColor.WHITE
                                  + "Now spectating " + target.getName() + ".");
-            target.sendMessage(ChatColor.BLUE + "[Streamer] "
-                               + ChatColor.WHITE
-                               + streamer.getName() + " is spectating you on "
-                               + ChatColor.BLUE + url
-                               + ChatColor.WHITE + ".");
+            ComponentBuilder cb = new ComponentBuilder("");
+            cb.append("[Streamer] ").color(ChatColor.BLUE);
+            cb.append(streamer.getName() + " is spectating you on ").color(ChatColor.WHITE);
+            cb.append(url).color(ChatColor.BLUE).underlined(true);
+            cb.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                                    TextComponent.fromLegacyText(url)));
+            cb.event(new ClickEvent(ClickEvent.Action.OPEN_URL, url));
+            cb.append(". ").color(ChatColor.WHITE);
+            cb.append("[OptOut]").color(ChatColor.GREEN);
+            String cmd = "/stream optout";
+            cb.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                                    TextComponent.fromLegacyText(cmd)));
+            cb.event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, cmd));
+            target.spigot().sendMessage(cb.create());
         }
     }
 
@@ -176,12 +137,17 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
             streamer = getServer().getPlayerExact("Cavetale");
         }
         // Target
-        if (target != null && !target.isOnline()) {
-            pickTarget(null);
-            detachStreamer();
-        } else if (target != null && !target.hasPermission("streamer.target")) {
-            pickTarget(null);
-            detachStreamer();
+        if (target != null) {
+            if (!target.isOnline()) {
+                pickTarget(null);
+                detachStreamer();
+            } else if (!target.hasPermission("streamer.target")) {
+                pickTarget(null);
+                detachStreamer();
+            } else if (optouts.contains(target.getUniqueId())) {
+                pickTarget(null);
+                detachStreamer();
+            }
         }
         // Detach if necessary
         if (streamer != null && target == null && streamer.getSpectatorTarget() != null) {

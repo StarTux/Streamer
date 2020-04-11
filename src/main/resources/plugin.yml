@@ -8,6 +8,12 @@ website: https://cavetale.com
 depend: []
 softdepend: []
 commands:
+  stream:
+    description: User interface
+    permission: streamer.target
+    usage: |-
+      /stream optout - Opt out
+      /stream optin - Opt back in
   streamer:
     description: Admin commands
     permission: streamer.streamer
