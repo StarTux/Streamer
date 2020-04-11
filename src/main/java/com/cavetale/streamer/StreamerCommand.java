@@ -54,7 +54,7 @@ public final class StreamerCommand implements CommandExecutor {
             for (Session row : rows) {
                 sender.sendMessage(i++ + ") "
                                    + " " + row.player.getName()
-                                   + " noMove=" + row.noMove);
+                                   + " afk=" + row.afk);
             }
             return true;
         }

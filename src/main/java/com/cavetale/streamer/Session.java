@@ -12,7 +12,9 @@ final class Session {
     int lz;
     float lpitch;
     float lyaw;
-    int noMove = 0;
+    private int noMove = 0;
+    private int noView = 0;
+    int afk;
 
     void timer() {
         Location eye = player.getEyeLocation();
@@ -21,17 +23,21 @@ final class Session {
         final int z = eye.getBlockZ();
         final float pitch = eye.getPitch();
         final float yaw = eye.getYaw();
-        boolean samePos = x == lx && y == ly && z == lz;
-        boolean sameView = lpitch == pitch && lyaw == yaw;
-        if (samePos || sameView) {
+        if (x == lx && y == ly && z == lz) {
             noMove += 1;
         } else {
             noMove = 0;
+            lx = x;
+            ly = y;
+            lz = z;
         }
-        lx = x;
-        ly = y;
-        lz = z;
-        lpitch = pitch;
-        lyaw = yaw;
+        if (lpitch == pitch && lyaw == yaw) {
+            noView += 1;
+        } else {
+            noView = 0;
+            lpitch = pitch;
+            lyaw = yaw;
+        }
+        afk = Math.max(noMove, noView);
     }
 }

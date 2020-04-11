@@ -87,7 +87,7 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
             .filter(p -> p.hasPermission("streamer.target"))
             .filter(p -> !optouts.contains(p.getUniqueId()))
             .map(this::sessionOf)
-            .filter(s -> s.noMove < 10)
+            .filter(s -> s.afk < 10)
             .collect(Collectors.toList());
         if (targets.isEmpty()) {
             pickTarget(null);
@@ -248,7 +248,7 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
             sendServerCooldown = 200;
             return;
         }
-        if (target == null || targetTime > 7 * 60 || sessionOf(target).noMove > 40) {
+        if (target == null || targetTime > 7 * 60 || sessionOf(target).afk > 40) {
             pickTarget();
         }
         if (target != null) {
