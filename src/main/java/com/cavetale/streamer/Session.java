@@ -10,6 +10,8 @@ final class Session {
     int lx;
     int ly;
     int lz;
+    float lpitch;
+    float lyaw;
     int noMove = 0;
 
     void timer() {
@@ -17,7 +19,11 @@ final class Session {
         final int x = eye.getBlockX();
         final int y = eye.getBlockY();
         final int z = eye.getBlockZ();
-        if (x == lx && y == ly && z == lz) {
+        final float pitch = eye.getPitch();
+        final float yaw = eye.getYaw();
+        boolean samePos = x == lx && y == ly && z == lz;
+        boolean sameView = lpitch == pitch && lyaw == yaw;
+        if (samePos || sameView) {
             noMove += 1;
         } else {
             noMove = 0;
@@ -25,5 +31,7 @@ final class Session {
         lx = x;
         ly = y;
         lz = z;
+        lpitch = pitch;
+        lyaw = yaw;
     }
 }
