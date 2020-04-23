@@ -116,7 +116,7 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
             ComponentBuilder cb = new ComponentBuilder("");
             cb.append("[Streamer] ").color(ChatColor.BLUE);
             cb.append(streamer.getName() + " is spectating you: ").color(ChatColor.WHITE);
-            cb.append("[Link]").color(ChatColor.BLUE).underlined(true);
+            cb.append("[Link]").color(ChatColor.BLUE);
             cb.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
                                     TextComponent.fromLegacyText(url)));
             cb.event(new ClickEvent(ClickEvent.Action.OPEN_URL, url));
