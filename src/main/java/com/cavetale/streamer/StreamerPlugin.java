@@ -115,13 +115,13 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
                                  + "Now spectating " + target.getName() + ".");
             ComponentBuilder cb = new ComponentBuilder("");
             cb.append("[Streamer] ").color(ChatColor.BLUE);
-            cb.append(streamer.getName() + " is spectating you on ").color(ChatColor.WHITE);
-            cb.append(url).color(ChatColor.BLUE).underlined(true);
+            cb.append(streamer.getName() + " is spectating you: ").color(ChatColor.WHITE);
+            cb.append("[Link]").color(ChatColor.BLUE).underlined(true);
             cb.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
                                     TextComponent.fromLegacyText(url)));
             cb.event(new ClickEvent(ClickEvent.Action.OPEN_URL, url));
             cb.append(". ").reset();
-            cb.append("[OptOut]").color(ChatColor.GREEN);
+            cb.append("[OptOut]").color(ChatColor.YELLOW);
             String cmd = "/stream optout";
             cb.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
                                     TextComponent.fromLegacyText(cmd)));
