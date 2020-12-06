@@ -248,7 +248,7 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
             sendServerCooldown = 200;
             return;
         }
-        if (target == null || targetTime > 7 * 60 || sessionOf(target).afk > 40) {
+        if (target == null || target.getGameMode() == GameMode.SPECTATOR || targetTime > 7 * 60 || sessionOf(target).afk > 40) {
             pickTarget();
         }
         if (target != null) {
