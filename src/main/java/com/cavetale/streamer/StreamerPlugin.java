@@ -16,6 +16,7 @@ import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
@@ -34,6 +35,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 public final class StreamerPlugin extends JavaPlugin implements Listener {
+    public static final String PERM = "group.streamer";
     final StreamerCommand streamerCommand = new StreamerCommand(this);
     final StreamCommand streamCommand = new StreamCommand(this);
     final Random random = new Random();
@@ -130,13 +132,25 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
         }
     }
 
+    Player findStreamer() {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (player.isPermissionSet(PERM) && player.hasPermission(PERM)) {
+                return player;
+            }
+        }
+        return null;
+    }
+
     boolean checkValidity() {
         // Streamer
         if (streamer != null && !streamer.isOnline()) {
             streamer = null;
         }
+        if (streamer != null && (!streamer.isPermissionSet(PERM) || !streamer.hasPermission(PERM))) {
+            streamer = null;
+        }
         if (streamer == null) {
-            streamer = getServer().getPlayerExact("Cavetale");
+            streamer = findStreamer();
         }
         // Target
         if (target != null) {
