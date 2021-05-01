@@ -179,7 +179,7 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
     }
 
     void detachStreamer() {
-        if (streamer == null) return;
+        if (streamer == null || streamer.getGameMode() != GameMode.SPECTATOR) return;
         streamer.setSpectatorTarget(null);
     }
 
