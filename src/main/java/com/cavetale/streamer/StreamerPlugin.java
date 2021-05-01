@@ -11,6 +11,8 @@ import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -246,7 +248,10 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
                 streamer.setSpectatorTarget(null);
             }
         }
-        streamer.sendActionBar(ChatColor.GRAY + "Spectating " + target.getDisplayName());
+        streamer.sendActionBar(Component.text()
+                               .append(Component.text("Spectating ", NamedTextColor.GRAY))
+                               .append(target.displayName())
+                               .build());
     }
 
     void timer() {
