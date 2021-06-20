@@ -243,7 +243,7 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
             if (streamer.getSpectatorTarget() == null) {
                 streamer.setSpectatorTarget(target);
                 spectateLocation = target.getLocation();
-            } else if (spectateLocation != null && tooFar(spectateLocation, streamer.getLocation(), 1024.0)) {
+            } else if (spectateLocation != null && tooFar(spectateLocation, streamer.getLocation(), 256.0)) {
                 streamer.setSpectatorTarget(null);
             }
         }
