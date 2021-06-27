@@ -50,6 +50,7 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
     String targetServer;
     int sendServerCooldown;
     String url;
+    String worldFilter;
 
     @Override
     public void onEnable() {
@@ -91,6 +92,7 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
             .filter(p -> p.hasPermission("streamer.target"))
             .filter(p -> !optouts.contains(p.getUniqueId()))
             .filter(p -> !p.hasMetadata("nostream"))
+            .filter(p -> worldFilter == null || p.getWorld().getName().equals(worldFilter))
             .map(this::sessionOf)
             .filter(s -> s.afk < 10)
             .collect(Collectors.toList());

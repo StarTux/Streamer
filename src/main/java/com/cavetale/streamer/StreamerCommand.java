@@ -63,6 +63,16 @@ public final class StreamerCommand implements CommandExecutor {
             sender.sendMessage("Config reloaded.");
             return true;
         }
+        case "world": {
+            if (args.length < 2) {
+                plugin.worldFilter = null;
+                sender.sendMessage("World reset. All worlds are valid.");
+            } else {
+                plugin.worldFilter = args[1];
+                sender.sendMessage("World filter: " + args[1]);
+            }
+            return true;
+        }
         default:
             return false;
         }
