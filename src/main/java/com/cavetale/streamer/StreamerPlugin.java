@@ -12,13 +12,13 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.JoinConfiguration;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
-import net.md_5.bungee.api.chat.HoverEvent;
-import net.md_5.bungee.api.chat.TextComponent;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
@@ -120,20 +120,18 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
             streamer.sendMessage(ChatColor.BLUE + "[Streamer] "
                                  + ChatColor.WHITE
                                  + "Now spectating " + target.getName() + ".");
-            ComponentBuilder cb = new ComponentBuilder("");
-            cb.append("[Streamer] ").color(ChatColor.BLUE);
-            cb.append(streamer.getName() + " is spectating you: ").color(ChatColor.WHITE);
-            cb.append("[Link]").color(ChatColor.BLUE);
-            cb.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                                    TextComponent.fromLegacyText(url)));
-            cb.event(new ClickEvent(ClickEvent.Action.OPEN_URL, url));
-            cb.append(". ").reset();
-            cb.append("[OptOut]").color(ChatColor.YELLOW);
             String cmd = "/stream optout";
-            cb.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                                    TextComponent.fromLegacyText(cmd)));
-            cb.event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, cmd));
-            target.spigot().sendMessage(cb.create());
+            target.sendMessage(Component.join(JoinConfiguration.noSeparators(), new Component[] {
+                        Component.text("[Streamer] ", NamedTextColor.BLUE),
+                        Component.text(streamer.getName() + " is spectating you: ", NamedTextColor.WHITE),
+                        Component.text("[Link]", NamedTextColor.BLUE)
+                        .hoverEvent(HoverEvent.showText(Component.text(url, NamedTextColor.BLUE, TextDecoration.UNDERLINED)))
+                        .clickEvent(ClickEvent.openUrl(url)),
+                        Component.text(". "),
+                        Component.text("[OptOut]", NamedTextColor.RED)
+                        .hoverEvent(HoverEvent.showText(Component.text(cmd, NamedTextColor.RED)))
+                        .clickEvent(ClickEvent.runCommand(cmd)),
+                    }));
         }
     }
 
@@ -196,7 +194,7 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
         if (pot == null || pot.getAmplifier() == 0 || pot.getDuration() < dur) {
             pot = new PotionEffect(PotionEffectType.LUCK, dur, 0,
                                    true, true, true);
-            player.addPotionEffect(pot, true);
+            player.addPotionEffect(pot);
         }
     }
 
@@ -224,7 +222,7 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
         if (block.getLightLevel() < 8) {
             PotionEffect pot = new PotionEffect(PotionEffectType.NIGHT_VISION,
                                                 600, 0, true, false, false);
-            streamer.addPotionEffect(pot, true);
+            streamer.addPotionEffect(pot);
         } else if (block.getLightLevel() > 10) {
             streamer.removePotionEffect(PotionEffectType.NIGHT_VISION);
         }
