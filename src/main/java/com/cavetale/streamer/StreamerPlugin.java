@@ -204,7 +204,7 @@ public final class StreamerPlugin extends JavaPlugin implements Listener {
             streamer.setGameMode(GameMode.SPECTATOR);
         }
         // Restore health
-        double max = streamer.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+        double max = streamer.getAttribute(Attribute.MAX_HEALTH).getValue();
         if (streamer.getHealth() < max) {
             streamer.setHealth(max);
         }
